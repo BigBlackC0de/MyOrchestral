@@ -1,0 +1,33 @@
+# Build output
+build/
+build-*/
+cmake-build-*/
+out/
+
+# Sample banks are large and licensed separately — never committed.
+# See docs/00-audit-samples.md and docs/03-format-banque.md.
+banks/*
+!banks/README.md
+!banks/.gitkeep
+
+# Impulse responses, same reasoning.
+irs/*
+!irs/README.md
+
+# JUCE, when cloned locally rather than fetched
+external/
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+DerivedData/
+xcuserdata/
+
+# macOS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+compile_commands.json
+.cache/
