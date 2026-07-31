@@ -50,6 +50,18 @@ public:
     float getGainDb() const noexcept { return gainDb; }
     float getLinearGain() const noexcept { return linearGain; }
 
+    /** Multiplies every region's attack and release for this section. 1.0 leaves
+        the bank as recorded; below 1 tightens it, above 1 softens it. Bounded so
+        a slider cannot produce a note that never starts or never ends. */
+    void setEnvelopeScales (float attack, float release) noexcept
+    {
+        attackScale  = std::clamp (attack, 0.25f, 8.0f);
+        releaseScale = std::clamp (release, 0.1f, 8.0f);
+    }
+
+    float getAttackScale() const noexcept  { return attackScale; }
+    float getReleaseScale() const noexcept { return releaseScale; }
+
     void setMuted (bool shouldMute) noexcept  { muted = shouldMute; }
     void setSoloed (bool shouldSolo) noexcept { soloed = shouldSolo; }
     bool isMuted() const noexcept  { return muted; }
@@ -63,6 +75,12 @@ public:
     humanize::Humanizer&         humanizer() noexcept   { return humanizerInstance; }
     bank::SelectionState&        selection() noexcept   { return selectionState; }
 
+    // Const overloads: the UI reads this state every repaint and has no business
+    // holding a mutable reference to it.
+    const perf::KeyswitchRouter& keyswitches() const noexcept { return router; }
+    const perf::LegatoDetector&  legato() const noexcept      { return legatoDetector; }
+    const humanize::Humanizer&   humanizer() const noexcept   { return humanizerInstance; }
+
     /** Peak level of the last processed block, for metering. */
     float getPeakLevel() const noexcept { return peakLevel.load (std::memory_order_relaxed); }
     void  setPeakLevel (float value) noexcept { peakLevel.store (value, std::memory_order_relaxed); }
@@ -72,10 +90,12 @@ private:
     bank::InstrumentPtr  instrument;
     int                  midiChannel = -1;
 
-    float gainDb     = 0.0f;
-    float linearGain = 1.0f;
-    bool  muted      = false;
-    bool  soloed     = false;
+    float gainDb       = 0.0f;
+    float linearGain   = 1.0f;
+    float attackScale  = 1.0f;
+    float releaseScale = 1.0f;
+    bool  muted        = false;
+    bool  soloed       = false;
 
     space::StageProcessor  stageProcessor;
     perf::KeyswitchRouter  router;

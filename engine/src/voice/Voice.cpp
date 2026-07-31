@@ -144,7 +144,7 @@ void Voice::start (const VoiceStartInfo& info, stream::StreamManager* manager)
     envelopeParameters.hold    = region->ampegHold;
     envelopeParameters.decay   = region->ampegDecay;
     envelopeParameters.sustain = std::clamp (region->ampegSustain, 0.0f, 1.0f);
-    envelopeParameters.release = std::max (0.005f, region->ampegRelease);
+    envelopeParameters.release = std::max (0.005f, region->ampegRelease * info.releaseScale);
 
     envelope.start (envelopeParameters);
 

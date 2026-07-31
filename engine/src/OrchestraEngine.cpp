@@ -227,11 +227,14 @@ void OrchestraEngine::noteOn (int channel, int note, int velocity)
             info.sectionId     = sectionIndex;
             info.selectionGain = selected[layer].gain;
 
+            info.attackScale  = section.getAttackScale();
+            info.releaseScale = section.getReleaseScale();
+
             if (legato.isLegato)
             {
                 info.portamentoSemitones = legato.portamentoSemitones;
                 info.portamentoSeconds   = legato.portamentoSeconds;
-                info.attackScale         = legato.attackScale;
+                info.attackScale        *= legato.attackScale;
             }
 
             info.humanisePitchCents   = variation.pitchCents;

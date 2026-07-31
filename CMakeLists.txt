@@ -28,8 +28,9 @@ endif()
 
 include(MoeWarnings)
 
-option(MOE_BUILD_PLUGIN "Build the JUCE plugin targets" ON)
-option(MOE_BUILD_TESTS  "Build the engine unit tests"   ON)
+option(MOE_BUILD_PLUGIN "Build the JUCE plugin targets"    ON)
+option(MOE_BUILD_TESTS  "Build the engine unit tests"      ON)
+option(MOE_BUILD_TOOLS  "Build the command-line utilities" ON)
 
 # ---------------------------------------------------------------------------
 # The engine: no JUCE, no plugin SDK, buildable and testable on its own.
@@ -39,6 +40,10 @@ add_subdirectory(engine)
 if(MOE_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
+endif()
+
+if(MOE_BUILD_TOOLS)
+    add_subdirectory(tools)
 endif()
 
 if(MOE_BUILD_PLUGIN)

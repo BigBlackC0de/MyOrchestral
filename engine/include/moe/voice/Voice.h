@@ -33,8 +33,13 @@ struct VoiceStartInfo
     float portamentoSeconds   = 0.0f;
 
     /** Attack scaling for a legato re-trigger: a bowed string joining a phrase
-        does not re-attack at full strength. */
+        does not re-attack at full strength. Also carries the section's user
+        attack offset, so the two multiply naturally. */
     float attackScale = 1.0f;
+
+    /** Section-level release scaling. Lets a player shorten a bank's long tail
+        for tight ostinatos, or lengthen it for a pad, without editing the SFZ. */
+    float releaseScale = 1.0f;
 
     // Humanisation, resolved by the caller so the voice stays deterministic.
     float humanisePitchCents   = 0.0f;
