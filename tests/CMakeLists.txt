@@ -17,6 +17,14 @@ target_compile_features(moe_tests PRIVATE cxx_std_20)
 
 moe_set_warnings(moe_tests)
 
+# doctest::Approx takes a double, so every comparison against a float value
+# trips -Wdouble-promotion. The warning is worth keeping on the engine, where
+# an accidental promotion in a per-sample loop is a real cost; in test
+# assertions it is noise.
+if(NOT MSVC)
+    target_compile_options(moe_tests PRIVATE -Wno-double-promotion)
+endif()
+
 add_test(NAME moe_tests COMMAND moe_tests --no-intro)
 
 set_tests_properties(moe_tests PROPERTIES TIMEOUT 300)

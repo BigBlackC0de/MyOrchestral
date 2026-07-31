@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  # The engine is JUCE-free, so it builds and tests in seconds on a cheap
+  # runner. This is the gate that matters: it catches real defects long before
+  # anything is plugged into a DAW.
+  engine:
+    name: Engine tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: >
+          cmake -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DMOE_BUILD_PLUGIN=OFF
+          -DMOE_WERROR=ON
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Placeholder bank generates and loads
+        run: |
+          python3 tools/make_placeholder_bank.py --output /tmp/bank --quick
+          ./build/tools/moe_render --bank /tmp/bank/placeholder-strings.sfz --list
+          ./build/tools/moe_render \
+            --bank /tmp/bank/placeholder-strings.sfz \
+            --out /tmp/render.wav --notes 60,64,67 --seconds 1
+          test -s /tmp/render.wav
+
+  # The plugin build is slower (it fetches JUCE) and only needs to prove that
+  # the adapter layer still compiles against the engine.
+  plugin:
+    name: Plugin build (macOS)
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache JUCE
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: juce-${{ runner.os }}-8.0.4
+
+      - name: Configure
+        run: >
+          cmake -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DMOE_BUILD_TESTS=OFF
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Check the binary is universal
+        run: |
+          BINARY=build/plugin/MyOrchestral_artefacts/Release/VST3/MyOrchestral.vst3/Contents/MacOS/MyOrchestral
+          lipo -info "$BINARY"
+          lipo -info "$BINARY" | grep -q arm64
+          lipo -info "$BINARY" | grep -q x86_64
