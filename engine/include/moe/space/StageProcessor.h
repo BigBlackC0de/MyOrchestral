@@ -23,8 +23,14 @@ struct StagePosition
     /** Seating that matches a standard symphonic layout, viewed from the
         audience. Used as the default when a bank is loaded and its family is
         known — it is what makes a freshly loaded orchestra sit correctly without
-        the user touching a single pan control. */
-    static StagePosition defaultFor (Family family) noexcept;
+        the user touching a single pan control.
+
+        `seat` distinguishes desks of the same family: seat 0 of the strings is
+        where first violins sit, seat 1 the seconds, and so on. Without it every
+        string section would land on the same spot, which is both wrong and
+        useless on the stage view. Seats beyond the table wrap around and step
+        further back. */
+    static StagePosition defaultFor (Family family, int seat = 0) noexcept;
 };
 
 /** Places a section in a virtual hall.

@@ -34,7 +34,23 @@ public:
     void setInstrument (bank::InstrumentPtr newInstrument);
     const bank::InstrumentPtr& getInstrument() const noexcept { return instrument; }
 
-    void setName (std::string newName) { name = std::move (newName); }
+    /** Renames the section. Marks the name as the user's, so loading a bank no
+        longer overwrites it. */
+    void setName (std::string newName)
+    {
+        name         = std::move (newName);
+        nameIsCustom = true;
+    }
+
+    /** Sets the name only if the user has not chosen one. Loading a bank uses
+        this, which is what makes a freshly loaded desk show "Violins I" rather
+        than "Section 3". */
+    void setDefaultName (std::string newName)
+    {
+        if (! nameIsCustom)
+            name = std::move (newName);
+    }
+
     const std::string& getName() const noexcept { return name; }
 
     /** MIDI channel this section listens to, 0-based. -1 means omni. */
@@ -86,9 +102,10 @@ public:
     void  setPeakLevel (float value) noexcept { peakLevel.store (value, std::memory_order_relaxed); }
 
 private:
-    std::string          name = "Section";
+    std::string          name         = "Section";
+    bool                 nameIsCustom = false;
     bank::InstrumentPtr  instrument;
-    int                  midiChannel = -1;
+    int                  midiChannel  = -1;
 
     float gainDb       = 0.0f;
     float linearGain   = 1.0f;
@@ -132,6 +149,17 @@ public:
     {
         return sections[static_cast<std::size_t> (index)];
     }
+
+    /** Installs a bank and seats the section on the stage.
+
+        Prefer this over `getSection(i).setInstrument(...)`: it works out which
+        seat the desk should take from the families already loaded, so a second
+        string section lands beside the first rather than on top of it.
+
+        @returns the stage position chosen, so a caller that owns the position
+                 elsewhere (the plugin, whose parameters are authoritative) can
+                 mirror it. */
+    space::StagePosition setSectionInstrument (int index, bank::InstrumentPtr instrument);
 
     void setStreamingProfile (StreamingProfile profile);
     StreamingProfile getStreamingProfile() const noexcept { return streamingProfile; }

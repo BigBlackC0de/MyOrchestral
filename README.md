@@ -6,6 +6,12 @@ n'importe quelle DAW. Pensé pour la musique épique et cinématique.
 **État : MVP jouable.** Le moteur complet est écrit et testé, le plugin
 compile et charge des banques SFZ. Voir [Où en est le projet](#où-en-est-le-projet).
 
+![L'interface de MyOrchestral](docs/images/ui.png)
+
+*Capture réelle, produite par `moe_screenshot` : le plugin est instancié, sept
+pupitres sont chargés, des notes sont jouées, et l'éditeur est rendu. Ce n'est
+pas une maquette.*
+
 ---
 
 ## À lire en premier
@@ -41,6 +47,17 @@ cmake --build build --config Release --target moe_render
 ```
 
 Détails, DAW par DAW : **[docs/02-build-macos.md](docs/02-build-macos.md)**.
+
+### Installeur DMG
+
+```bash
+./packaging/make_installer.sh          # -> MyOrchestral-0.1.0.dmg
+```
+
+Produit un `.dmg` contenant un installeur qui place l'AU et le VST3 aux bons
+endroits. Logic Pro le voit après un redémarrage. Signature et notarisation
+seulement si le DMG doit voyager vers une autre machine :
+**[docs/05-installeur-macos.md](docs/05-installeur-macos.md)**.
 
 ---
 

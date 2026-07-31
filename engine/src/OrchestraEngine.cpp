@@ -34,10 +34,9 @@ void Section::setInstrument (bank::InstrumentPtr newInstrument)
 
     if (instrument != nullptr)
     {
-        if (name == "Section" && ! instrument->name.empty())
-            name = instrument->name;
+        if (! instrument->name.empty())
+            setDefaultName (instrument->name);
 
-        stageProcessor.setPosition (space::StagePosition::defaultFor (instrument->family));
         humanizerInstance.setSettings (humanize::Humanizer::defaultsFor (instrument->family));
 
         // Percussion should not glide; everything else benefits from it.
@@ -62,7 +61,7 @@ OrchestraEngine::OrchestraEngine()
     for (int i = 0; i < kMaxSections; ++i)
     {
         sections[static_cast<std::size_t> (i)].setMidiChannel (i);
-        sections[static_cast<std::size_t> (i)].setName ("Section " + std::to_string (i + 1));
+        sections[static_cast<std::size_t> (i)].setDefaultName ("Section " + std::to_string (i + 1));
     }
 }
 
@@ -115,6 +114,35 @@ void OrchestraEngine::releaseResources()
     voices.allNotesOff (true);
     voices.setStreamManager (nullptr);
     streamer.shutdown();
+}
+
+space::StagePosition OrchestraEngine::setSectionInstrument (int index, bank::InstrumentPtr instrument)
+{
+    if (index < 0 || index >= kMaxSections)
+        return {};
+
+    auto& section = sections[static_cast<std::size_t> (index)];
+    section.setInstrument (instrument);
+
+    if (instrument == nullptr)
+        return section.stage().getPosition();
+
+    // Count the desks of this family already seated, so the second violins take
+    // the second string seat rather than landing on the firsts.
+    int seat = 0;
+    for (int other = 0; other < kMaxSections; ++other)
+    {
+        if (other == index)
+            continue;
+
+        const auto& sibling = sections[static_cast<std::size_t> (other)].getInstrument();
+        if (sibling != nullptr && sibling->family == instrument->family)
+            ++seat;
+    }
+
+    const auto position = space::StagePosition::defaultFor (instrument->family, seat);
+    section.stage().setPosition (position);
+    return position;
 }
 
 void OrchestraEngine::setStreamingProfile (StreamingProfile profile)

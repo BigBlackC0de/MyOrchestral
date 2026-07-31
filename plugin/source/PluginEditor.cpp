@@ -151,15 +151,18 @@ void MyOrchestralEditor::paint (juce::Graphics& g)
     g.setColour (ui::colours::outline);
     g.fillRect (topBar.removeFromBottom (1));
 
+    // Title block: the two lines are stacked explicitly rather than nudged with
+    // offsets, which is what made them collide.
+    auto titleArea = topBar.withTrimmedLeft (16).withWidth (216).reduced (0, 10);
+
     g.setColour (ui::colours::text);
-    g.setFont (ui::OrchestralLookAndFeel::font (20.0f, true));
-    g.drawText ("MyOrchestral", topBar.withTrimmedLeft (16).withWidth (220),
-                juce::Justification::centredLeft);
+    g.setFont (ui::OrchestralLookAndFeel::font (19.0f, true));
+    g.drawText ("MyOrchestral", titleArea.removeFromTop (24),
+                juce::Justification::bottomLeft);
 
     g.setColour (ui::colours::textFaint);
     g.setFont (ui::OrchestralLookAndFeel::font (10.0f));
-    g.drawText ("symphonic sampler", topBar.withTrimmedLeft (17).withWidth (220)
-                                            .withTrimmedTop (26),
+    g.drawText ("symphonic sampler", titleArea.removeFromTop (14),
                 juce::Justification::topLeft);
 
     // ---- status bar ------------------------------------------------------

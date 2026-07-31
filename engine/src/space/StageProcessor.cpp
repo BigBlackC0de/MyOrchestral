@@ -14,22 +14,60 @@ constexpr float kPi = 3.14159265358979f;
 constexpr float kReferenceDistance = 6.0f;
 }
 
-StagePosition StagePosition::defaultFor (Family family) noexcept
+StagePosition StagePosition::defaultFor (Family family, int seat) noexcept
 {
-    StagePosition p;
-
     // A conventional European seating plan, seen from the audience: first violins
-    // front left, seconds and violas centre-left through centre, cellos right,
-    // basses behind them, winds and brass further back, percussion at the rear.
+    // front left, seconds beside them, violas centre, cellos right, basses behind
+    // them; winds in front of the brass, percussion at the rear.
+    struct Seat { float lateral, distance, width, height; };
+
+    static constexpr Seat strings[]    = { { -0.55f,  6.5f, 0.75f, 0.0f },   // violins I
+                                           { -0.22f,  7.5f, 0.75f, 0.0f },   // violins II
+                                           {  0.12f,  8.0f, 0.70f, 0.0f },   // violas
+                                           {  0.45f,  8.5f, 0.65f, 0.0f },   // cellos
+                                           {  0.62f, 10.5f, 0.60f, 0.5f } }; // basses
+
+    static constexpr Seat woodwinds[]  = { { -0.18f, 12.0f, 0.45f, 0.5f },
+                                           {  0.10f, 12.5f, 0.45f, 0.5f },
+                                           { -0.32f, 13.0f, 0.40f, 0.8f },
+                                           {  0.26f, 13.5f, 0.40f, 0.8f } };
+
+    static constexpr Seat brass[]      = { {  0.28f, 15.5f, 0.55f, 1.0f },
+                                           { -0.30f, 16.0f, 0.55f, 1.0f },
+                                           {  0.50f, 16.5f, 0.50f, 1.2f },
+                                           {  0.05f, 17.0f, 0.50f, 1.2f } };
+
+    static constexpr Seat percussion[] = { { -0.10f, 19.0f, 0.70f, 1.5f },
+                                           {  0.35f, 20.0f, 0.65f, 1.5f },
+                                           { -0.45f, 20.5f, 0.65f, 1.8f } };
+
+    static constexpr Seat choir[]      = { {  0.0f,  21.0f, 0.90f, 2.0f },
+                                           { -0.35f, 22.0f, 0.80f, 2.2f },
+                                           {  0.35f, 22.0f, 0.80f, 2.2f } };
+
+    static constexpr Seat other[]      = { {  0.0f,  10.0f, 0.60f, 0.0f } };
+
+    const Seat* table = other;
+    int         count = 1;
+
     switch (family)
     {
-        case Family::strings:    p.distance = 7.0f;  p.lateral = -0.35f; p.width = 0.75f; break;
-        case Family::woodwinds:  p.distance = 12.0f; p.lateral =  0.05f; p.width = 0.45f; p.height = 0.5f; break;
-        case Family::brass:      p.distance = 15.0f; p.lateral =  0.30f; p.width = 0.55f; p.height = 1.0f; break;
-        case Family::percussion: p.distance = 19.0f; p.lateral = -0.15f; p.width = 0.70f; p.height = 1.5f; break;
-        case Family::choir:      p.distance = 21.0f; p.lateral =  0.0f;  p.width = 0.90f; p.height = 2.0f; break;
-        default:                 p.distance = 10.0f; p.lateral =  0.0f;  p.width = 0.60f; break;
+        case Family::strings:    table = strings;    count = 5; break;
+        case Family::woodwinds:  table = woodwinds;  count = 4; break;
+        case Family::brass:      table = brass;      count = 4; break;
+        case Family::percussion: table = percussion; count = 3; break;
+        case Family::choir:      table = choir;      count = 3; break;
+        default: break;
     }
+
+    const int index = seat < 0 ? 0 : seat % count;
+    const int wraps = seat < 0 ? 0 : seat / count;
+
+    StagePosition p;
+    p.lateral  = table[index].lateral;
+    p.distance = table[index].distance + static_cast<float> (wraps) * 1.5f;
+    p.width    = table[index].width;
+    p.height   = table[index].height;
 
     return p;
 }

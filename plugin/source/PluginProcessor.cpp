@@ -124,6 +124,18 @@ void MyOrchestralProcessor::pushParametersToEngine()
     }
 }
 
+void MyOrchestralProcessor::setParameterIfUntouched (const juce::String& parameterId, float value)
+{
+    auto* parameter = parameters.getParameter (parameterId);
+    if (parameter == nullptr)
+        return;
+
+    if (std::abs (parameter->getValue() - parameter->getDefaultValue()) > 1.0e-4f)
+        return;
+
+    parameter->setValueNotifyingHost (parameter->convertTo0to1 (value));
+}
+
 void MyOrchestralProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi)
 {
     juce::ScopedNoDenormals noDenormals;
@@ -252,7 +264,14 @@ void MyOrchestralProcessor::loadBankAsync (int section,
         {
             if (success)
             {
-                engine.getSection (section).setInstrument (instrument);
+                const auto seatedAt = engine.setSectionInstrument (section, instrument);
+
+                // The engine seated the desk, but the parameters are what it
+                // reads every block — so mirror the seat there, without
+                // clobbering a position the user or the session already chose.
+                setParameterIfUntouched (params::sectionPan (section), seatedAt.lateral);
+                setParameterIfUntouched (params::sectionDistance (section), seatedAt.distance);
+                setParameterIfUntouched (params::sectionWidth (section), seatedAt.width);
 
                 auto node = extraState.getChild (section);
                 if (node.isValid())

@@ -84,7 +84,15 @@ public:
 
 private:
     void pushParametersToEngine();
-    void handleMidi (const juce::MidiBuffer& midi);
+
+    /** Writes `value` to a parameter, but only if the user has not moved it.
+
+        Loading a bank should seat the section on the stage, and the parameters
+        are what the engine actually reads — so the default has to be written
+        there. Doing it unconditionally would throw away a position the user
+        chose, or one restored from a session, so it is only applied to
+        parameters still sitting at their factory value. */
+    void setParameterIfUntouched (const juce::String& parameterId, float value);
 
     juce::AudioProcessorValueTreeState parameters;
     juce::ValueTree                    extraState { state::tree };

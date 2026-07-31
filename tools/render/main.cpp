@@ -245,7 +245,7 @@ int main (int argc, char** argv)
     moe::OrchestraEngine engine;
     engine.prepare (options.sampleRate, options.blockSize);
     engine.getSection (0).setMidiChannel (0);
-    engine.getSection (0).setInstrument (loaded.instrument);
+    engine.setSectionInstrument (0, loaded.instrument);
     engine.setReverbMix (options.reverbMix);
 
     if (! options.irPath.empty())
