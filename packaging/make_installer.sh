@@ -43,7 +43,74 @@ if [[ "$(uname)" != "Darwin" ]]; then
     exit 1
 fi
 
+# --------------------------------------------------------------------------
+# 0. Prerequisites
+#
+# A bare "command not found" three lines into a build script is a miserable
+# first experience. Check up front and say exactly what to install.
+# --------------------------------------------------------------------------
+check_prerequisites() {
+    local missing=()
+
+    # CMake sometimes lives inside the CMake.app bundle rather than on PATH.
+    if ! command -v cmake >/dev/null 2>&1; then
+        local bundled="/Applications/CMake.app/Contents/bin"
+        if [[ -x "${bundled}/cmake" ]]; then
+            echo "==> Found CMake in ${bundled}, adding it to PATH for this build"
+            export PATH="${bundled}:${PATH}"
+        else
+            missing+=("cmake")
+        fi
+    fi
+
+    # pkgbuild, productbuild, hdiutil, lipo and codesign ship with the Xcode
+    # command line tools; if one is missing they all are.
+    if ! command -v pkgbuild >/dev/null 2>&1 || ! xcode-select -p >/dev/null 2>&1; then
+        missing+=("xcode-tools")
+    fi
+
+    if [[ ${#missing[@]} -eq 0 ]]; then
+        return 0
+    fi
+
+    echo >&2
+    echo "error: missing build prerequisites." >&2
+    echo >&2
+
+    for tool in "${missing[@]}"; do
+        case "${tool}" in
+            cmake)
+                echo "  CMake is not installed." >&2
+                if command -v brew >/dev/null 2>&1; then
+                    echo "      brew install cmake" >&2
+                else
+                    echo "    Homebrew is not installed either. Install both with:" >&2
+                    echo >&2
+                    echo '      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"' >&2
+                    echo "      brew install cmake" >&2
+                    echo >&2
+                    echo "    Or download the installer from https://cmake.org/download/" >&2
+                    echo "    (choose the macOS universal .dmg, then let it add CMake to PATH)." >&2
+                fi
+                ;;
+            xcode-tools)
+                echo "  The Xcode command line tools are not installed." >&2
+                echo "    They provide the compiler plus pkgbuild, productbuild and codesign:" >&2
+                echo >&2
+                echo "      xcode-select --install" >&2
+                ;;
+        esac
+        echo >&2
+    done
+
+    echo "Then run this script again." >&2
+    exit 1
+}
+
+check_prerequisites
+
 echo "==> MyOrchestral ${VERSION} — macOS installer"
+echo "    cmake: $(cmake --version | head -1)"
 
 # --------------------------------------------------------------------------
 # 1. Build, universal

@@ -31,6 +31,10 @@ bande-annonce indiscernable d'un vrai orchestre, et aucun code ne comble cet
 ## Démarrage rapide
 
 ```bash
+# 0. Prérequis, une seule fois (un Mac neuf n'a ni compilateur ni CMake)
+xcode-select --install
+brew install cmake        # ou https://cmake.org/download/
+
 # 1. Compiler (macOS, universal binary par défaut)
 cmake -B build -G Xcode
 cmake --build build --config Release

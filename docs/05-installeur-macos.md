@@ -1,5 +1,37 @@
 # Installeur macOS (.dmg) et reconnaissance par Logic Pro
 
+## Prérequis — à faire une seule fois
+
+Un Mac neuf n'a ni compilateur ni CMake. Sans ça, le script s'arrête tout de
+suite (en te disant quoi installer, mais autant l'avoir fait avant) :
+
+```bash
+# 1. Les outils de compilation d'Apple (compilateur, pkgbuild, codesign…)
+xcode-select --install
+
+# 2. Homebrew, si tu ne l'as pas déjà
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# 3. CMake
+brew install cmake
+```
+
+Vérification :
+
+```bash
+cmake --version      # 3.22 ou plus
+xcode-select -p      # doit afficher un chemin
+```
+
+Xcode complet (l'app de 15 Go depuis l'App Store) n'est **pas** nécessaire : les
+command line tools suffisent pour construire et empaqueter. Xcode n'est utile
+que si tu veux l'IDE.
+
+Alternative sans Homebrew : télécharger le `.dmg` universel depuis
+<https://cmake.org/download/> et accepter d'ajouter CMake au PATH à
+l'installation. Le script sait aussi trouver CMake dans
+`/Applications/CMake.app` si tu as oublié cette case.
+
 ## Fabriquer le DMG
 
 ```bash
